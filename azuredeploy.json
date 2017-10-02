@@ -51,7 +51,12 @@
             "type": "int",
             "metadata": {
                 "description": "Specify if the Splunk endpoint certificate should be verified. Default: 0"
-            }
+            },
+            "defaultValue": 0,
+            "allowedValues": [
+                0,
+                1
+            ]
         }
     },
     "variables": {
