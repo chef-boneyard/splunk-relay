@@ -1,0 +1,175 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "functionsAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the function app to create"
+            },
+            "defaultValue": "chef-automate-relay-splunk"
+        },
+        "functionsStorageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_ZRS",
+                "Premium_LRS"
+            ],
+            "metadata": {
+                "description": "Storage account type for the functions app. Default: Standard_LRS"
+            }
+        },
+        "splunkCustomerId": {
+            "type": "string",
+            "metadata": {
+                "description": "Splunk Customer ID to send data to"
+            }
+        },
+        "splunkToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Splunk API Token for authentication"
+            }
+        },
+        "splunkChannel": {
+            "type": "string",
+            "metadata": {
+                "description": "The channel ID to use. This is an arbitary UUID string"
+            }
+        },
+        "splunkPort": {
+            "type": "int",
+            "metadata": {
+                "description": "POrt that the Splunk HTTP Endpoint is listening on. Default: 8088"
+            },
+            "defaultValue": 8088
+        },
+        "splunkNoSslVerify": {
+            "type": "int",
+            "metadata": {
+                "description": "Specify if the Splunk endpoint certificate should be verified. Default: 0"
+            }
+        }
+    },
+    "variables": {
+        "functionsStorageAccountName": "[uniqueString(subscription().subscriptionId, resourceGroup().id, deployment().name, parameters('functionsAppName'))]",
+        "unique": "[variables('functionsStorageAccountName')]",
+        "uniqueShort": "[substring(variables('unique'), 0, 4)]",
+        "names": {
+            "storageAccount": "[variables('unique')]",
+            "function": "[concat(parameters('functionsAppName'), '-', variables('uniqueShort'))]",
+            "code": "relay-splunk",
+            "hostingPlan": "[concat(parameters('functionsAppName'), '-', variables('uniqueShort'), '-HostingPlan')]"
+        },
+        "splunk": {
+            "customerId": "[parameters('splunkCustomerId')]",
+            "token": "[parameters('splunkToken')]",
+            "port": "[parameters('splunkPort')]",
+            "channel": "[parameters('splunkChannel')]",
+            "noSslVerify": "[parameters('splunkNoSslVerify')]"
+        },
+        "code": "I3IgIk5ld3RvbnNvZnQuSnNvbiINCg0KI2xvYWQgIndvcmtzcGFjZS5jc3giDQoNCnVzaW5nIFN5c3RlbTsNCnVzaW5nIFN5c3RlbS5OZXQ7DQp1c2luZyBTeXN0ZW0uVGV4dDsNCnVzaW5nIE5ld3RvbnNvZnQuSnNvbjsNCg0KcHVibGljIHN0YXRpYyBhc3luYyBUYXNrPEh0dHBSZXNwb25zZU1lc3NhZ2U+IFJ1bihIdHRwUmVxdWVzdE1lc3NhZ2UgcmVxLCBzdHJpbmcgY2hhbm5lbCwgc3RyaW5nIGxvZ1R5cGUsIGludCBub1NzbFZlcmlmeSwgVHJhY2VXcml0ZXIgbG9nKQ0Kew0KICAgIGxvZy5JbmZvKCJQcm9jZXNzaW5nIGluYm91bmQgbm90aWZpY2F0aW9uIGZyb20gQ2hlZiBBdXRvbWF0ZToiKTsNCiANCiAgICBkeW5hbWljIGRhdGEgPSBhd2FpdCByZXEuQ29udGVudC5SZWFkQXNTdHJpbmdBc3luYygpOw0KICAgIHN0cmluZyBkYXRhU3RyaW5nID0gd3JhcERhdGEoZGF0YSwgbG9nVHlwZSk7DQoNCiAgICBsb2cuSW5mbygiSW5jb21pbmcgRGF0YSBpczogIiArIGRhdGFTdHJpbmcgKTsNCiANCiAgICAvLyBDcmVhdGUgYSBoYXNoIGZvciB0aGUgQVBJIHNpZ25hdHVyZQ0KICAgIHZhciBkYXRlc3RyaW5nID0gRGF0ZVRpbWUuVXRjTm93LlRvU3RyaW5nKCJyIik7DQogICAgc3RyaW5nIHNpZ25hdHVyZSA9IEJ1aWxkU2lnbmF0dXJlKHRva2VuKTsNCiAgICBsb2cuSW5mbygiUG9zdGluZyBEYXRhOiAiICsgZGF0YVN0cmluZyk7DQoNCiAgICAvLyBEZWZhdWx0IG5vU3NsVmVyaWZ5IGlmIGl0IGhhcyBub3QgYmVlbiBzZXQNCiAgICBib29sIHNzbFZlcmlmeSA9IHRydWU7DQogICAgaWYgKG5vU3NsVmVyaWZ5ID09IDEpIHsNCiAgICAgICAgc3NsVmVyaWZ5ID0gZmFsc2U7DQogICAgfQ0KDQogICAgc3RyaW5nIHBvc3REYXRhUmVzcG9uc2UgPSBQb3N0RGF0YShzaWduYXR1cmUsIGRhdGFTdHJpbmcsIGN1c3RvbWVySWQsIGNoYW5uZWwsIHNwbHVua1BvcnQsIHNzbFZlcmlmeSwgbG9nKTsNCiAgICBsb2cuSW5mbygiUG9zdGVkIERhdGEgUmVzcG9uc2U6ICIgKyBwb3N0RGF0YVJlc3BvbnNlKTsNCg0KICAgIHJldHVybiByZXEuQ3JlYXRlUmVzcG9uc2UoSHR0cFN0YXR1c0NvZGUuT0ssIHBvc3REYXRhUmVzcG9uc2UpOw0KfQ0KDQovLyBDcmVhdGUgdGhlIHdyYXBwZXIgZm9yIHRoZSBkYXRhDQpwdWJsaWMgc3RhdGljIHN0cmluZyB3cmFwRGF0YShkeW5hbWljIGRhdGEsIHN0cmluZyBsb2dUeXBlKQ0Kew0KICAgIC8vIGNvbnZlcnQgdGhlIENoZWYgYXV0b21hdGUgZGF0YSBpbnRvIGEgZGljdGlvbmFyeQ0KICAgIERpY3Rpb25hcnk8c3RyaW5nLCBvYmplY3Q+IHZhbHVlcyA9IEpzb25Db252ZXJ0LkRlc2VyaWFsaXplT2JqZWN0PERpY3Rpb25hcnk8c3RyaW5nLCBvYmplY3Q+PihkYXRhKTsNCg0KICAgIC8vIGNyZWF0ZSBhIG5ldyBkaWN0aW9uYXJ5IHRvIGhvbGQgdGhlIHdyYXAgZGF0YQ0KICAgIERpY3Rpb25hcnk8c3RyaW5nLCBvYmplY3Q+IHdyYXBwZWQgPSBuZXcgRGljdGlvbmFyeTxzdHJpbmcsIG9iamVjdD4oKQ0KICAgIHsNCiAgICAgICAgeyJ0aW1lIiwgRGF0ZVRpbWUuVXRjTm93LlRvU3RyaW5nKCJyIil9LA0KICAgICAgICB7ImV2ZW50IiwgdmFsdWVzfSwNCiAgICAgICAgeyJob3N0IiwgdmFsdWVzWyJub2RlX25hbWUiXX0sDQogICAgICAgIHsidHlwZSIsIGxvZ1R5cGV9DQogICAgfTsNCg0KICAgIC8vIHJldHVybiBqc29uIHBheWxvYWQNCiAgICByZXR1cm4gSnNvbkNvbnZlcnQuU2VyaWFsaXplT2JqZWN0KHdyYXBwZWQpOw0KfQ0KDQovLyBCdWlsZCB0aGUgQVBJIHNpZ25hdHVyZQ0KcHVibGljIHN0YXRpYyBzdHJpbmcgQnVpbGRTaWduYXR1cmUoc3RyaW5nIHRva2VuKQ0Kew0KICAgIHJldHVybiAiU3BsdW5rICIgKyB0b2tlbjsNCn0NCg0KLy8gU2VuZCBhIHJlcXVlc3QgdG8gdGhlIFBPU1QgQVBJIGVuZHBvaW50DQpwdWJsaWMgc3RhdGljIHN0cmluZyBQb3N0RGF0YShzdHJpbmcgc2lnbmF0dXJlLCBzdHJpbmcganNvbiwgc3RyaW5nIGN1c3RvbWVySUQsIHN0cmluZyBjaGFubmVsLCBzdHJpbmcgc3BsdW5rUG9ydCwgYm9vbCBzc2xWZXJpZnksIFRyYWNlV3JpdGVyIGxvZykNCnsNCiAgICBzdHJpbmcgdXJsID0gImh0dHBzOi8vaW5wdXQtIiArIGN1c3RvbWVySUQgKyAiLmNsb3VkLnNwbHVuay5jb206IiArIHNwbHVua1BvcnQgKyAiL3NlcnZpY2VzL2NvbGxlY3Rvci9yYXc/Y2hhbm5lbD0iICsgY2hhbm5lbDsNCiAgICANCiAgICBsb2cuSW5mbygiVVJMOiAiICsgdXJsKTsNCiAgICANCiAgICBpZiAoIXNzbFZlcmlmeSkgew0KICAgICAgICBTZXJ2aWNlUG9pbnRNYW5hZ2VyLkV4cGVjdDEwMENvbnRpbnVlID0gdHJ1ZTsgICAgICAgICAgICAgICAgDQogICAgICAgIFNlcnZpY2VQb2ludE1hbmFnZXIuU2VjdXJpdHlQcm90b2NvbCA9IFNlY3VyaXR5UHJvdG9jb2xUeXBlLlRsczEyOw0KICAgICAgICBTZXJ2aWNlUG9pbnRNYW5hZ2VyLlNlcnZlckNlcnRpZmljYXRlVmFsaWRhdGlvbkNhbGxiYWNrID0gZGVsZWdhdGUgeyByZXR1cm4gdHJ1ZTsgfTsNCiAgICB9DQoNCiAgICB1c2luZyAodmFyIGNsaWVudCA9IG5ldyBXZWJDbGllbnQoKSkNCiAgICB7DQogICAgICAgIGNsaWVudC5IZWFkZXJzLkFkZCgiQXV0aG9yaXphdGlvbiIsIHNpZ25hdHVyZSk7DQogICAgICAgIHN0cmluZyByZXBseSA9IGNsaWVudC5VcGxvYWRTdHJpbmcobmV3IFVyaSh1cmwpLCAiUE9TVCIsIGpzb24pOw0KICAgICAgICByZXR1cm4gKCJyZXBseTogIiArIHJlcGx5ICsgIlVSTDogIiArIHVybCArICAiIERhdGE6ICIgKyBqc29uKTsNCiAgICB9DQp9DQo="
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('names').storageAccount]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "accountType": "[parameters('functionsStorageAccountType')]"
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2015-04-01",
+            "name": "[variables('names').hostingPlan]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[variables('names').hostingPlan]",
+                "computeMode": "Dynamic",
+                "sku": "Dynamic"
+            }
+        },
+        {
+            "apiVersion": "2015-08-01",
+            "type": "Microsoft.Web/sites",
+            "name": "[variables('names').function]",
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "properties": {
+                "name": "[variables('names').function]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('names').hostingPlan)]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('names').hostingPlan)]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('names').storageAccount)]"
+            ],
+            "resources": [
+                {
+                    "apiVersion": "2016-03-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('names').function)]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('names').storageAccount)]"
+                    ],
+                    "properties": {
+                        "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('names').storageAccount,';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('names').storageAccount), '2015-05-01-preview').key1,';')]",
+                        "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('names').storageAccount,';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('names').storageAccount), '2015-05-01-preview').key1,';')]",
+                        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('names').storageAccount,';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('names').storageAccount), '2015-05-01-preview').key1,';')]",
+                        "WEBSITE_CONTENTSHARE": "[variables('names').function]",
+                        "FUNCTIONS_EXTENSION_VERSION": "latest"
+                    }
+                },
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "[variables('names').code]",
+                    "type": "functions",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('names').function)]",
+                        "appsettings"
+                    ],
+                    "properties": {
+                        "config": {
+                            "bindings": [
+                                {
+                                    "authLevel": "function",
+                                    "name": "req",
+                                    "type": "httpTrigger",
+                                    "direction": "in",
+                                    "methods": [
+                                        "post"
+                                    ],
+                                    "route": "{channel}/{logType}/{noSslVerify:int=0}"
+                                },
+                                {
+                                    "name": "res",
+                                    "type": "http",
+                                    "direction": "out"
+                                }
+                            ]
+                        },
+                        "files": {
+                            "run.csx": "[base64ToString(variables('code'))]",
+                            "workspace.csx": "[concat('static string customerId = \"', variables('splunk').customerId, '\";\nstatic string token = \"', variables('splunk').token, '\";\nstatic string splunkPort = \"', variables('splunk').port, '\";')]"
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "ChefClientRun_WebHook_Url": {
+            "type": "string",
+            "value": "[concat('https://', variables('names').function, '.azurewebsites.net/api/', variables('splunk').channel, '/ChefclientRunFailure/', variables('splunk').noSslVerify, '?code=', listsecrets(resourceId('Microsoft.Web/sites/functions', variables('names').function, variables('names').code), '2015-08-01').key)]"
+        },
+        "Compliance_WebHook_Url": {
+            "type": "string",
+            "value": "[concat('https://', variables('names').function, '.azurewebsites.net/api/', variables('splunk').channel, '/ComplianceFailure/', variables('splunk').noSslVerify, '?code=', listsecrets(resourceId('Microsoft.Web/sites/functions', variables('names').function, variables('names').code), '2015-08-01').key)]"
+        }
+    }
+}
