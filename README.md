@@ -84,6 +84,9 @@ New-AzureRmResourceGroupDeployment -Name "ExampleSplunkRelayDeployment" -Resourc
 
 Once the output information has been retrieved configure Chef Automate by adding a new Custom Notification in the Notifications tab.
 
+Thats it! Now after some of the nodes have checked in you should be able to see data in the Splunk instance.
+
+![Chef Automate logging to Splunk](images/splunk_search.png)
 
 ## Compatibility
 
